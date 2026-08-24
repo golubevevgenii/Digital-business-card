@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Визитка</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+    button { cursor: pointer; padding: 8px 12px; margin-top: 8px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Визитная карточка</h1>
+    <button onclick="loadAll()">Загрузить всё (1 запрос)</button>
+    <button onclick="clearAll()">Очистка полей</button>
+  <hr>
+
+  <div class="section">
+    <h3>Профиль</h3>
+    <button onclick="loadInfo()">Загрузить</button>
+    <pre id="info-output">Нажмите кнопку для загрузки</pre>
+  </div>
+  
+  <div class="section">
+    <h3>Образование</h3>
+    <button onclick="loadEducation()">Загрузить</button>
+    <pre id="education-output">Нажмите кнопку для загрузки</pre>
+  </div>
+
+  <div class="section">
+    <h3>Опыт</h3>
+    <button onclick="loadExperience()">Загрузить</button>
+    <pre id="experience-output">Нажмите кнопку для загрузки</pre>
+  </div>
+
+  <div class="section">
+    <h3>Навыки</h3>
+    <button onclick="loadSkills()">Загрузить</button>
+    <pre id="skills-output">Нажмите кнопку для загрузки</pre>
+  </div>
+
+  <script>
+    async function fetchGraphQL(query) {
+      const res = await fetch('/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      const json = await res.json();
+      return json.data;
+    }
+
+    // 1. Запрос только для инфо
+    async function loadInfo() {
+      const data = await fetchGraphQL(`
+        query {
+          profileInfo {
+            first_name
+            last_name
+            birth_year
+            phone
+            email
+            telegram_url
+            location
+          }
+        }
+      `);
+      document.getElementById('info-output').textContent = JSON.stringify(data.profileInfo, null, 2);
+    }
+
+    // 2. Запрос только для образования
+    async function loadEducation() {
+      const data = await fetchGraphQL(`
+        query {
+          profileEducation {
+            id
+            university
+            start_year
+            end_year
+            degree
+            field_of_study
+          }
+        }
+      `);
+      document.getElementById('education-output').textContent = JSON.stringify(data.profileEducation, null, 2);
+    }
+
+    // 3. Запрос только для опыта
+    async function loadExperience() {
+      const data = await fetchGraphQL(`
+        query {
+          profileExperience {
+            id
+            company_name
+            start_year
+            end_year
+            achievements
+          }
+        }
+      `)
+      document.getElementById('experience-output').textContent = JSON.stringify(data.profileExperience, null, 2);
+    }
+
+    // 4. Запрос только для навыков
+    async function loadSkills() {
+      const data = await fetchGraphQL(`
+        query {
+          profileSkills {
+            name
+          }
+        }
+      `);
+      document.getElementById('skills-output').textContent = JSON.stringify(data.profileSkills, null, 2);
+    }
+
+    // 4. Единый запрос для всех секций
+    async function loadAll() {
+      const data = await fetchGraphQL(`
+        query {
+          profileInfo {
+            first_name
+            last_name
+            birth_year
+            phone
+            email
+            telegram_url
+            location
+          }
+          profileEducation {
+            id
+            university
+            start_year
+            end_year
+            degree
+            field_of_study
+          }
+          profileExperience {
+            id
+            company_name
+            start_year
+            end_year
+            achievements
+          }
+          profileSkills {
+            name
+          }
+        }
+      `);
+      
+      if (data.profileInfo) document.getElementById('info-output').textContent = JSON.stringify(data.profileInfo, null, 2);
+      if (data.profileEducation) document.getElementById('education-output').textContent = JSON.stringify(data.profileEducation, null, 2);
+      if (data.profileExperience) document.getElementById('experience-output').textContent = JSON.stringify(data.profileExperience, null, 2);
+      if (data.profileSkills) document.getElementById('skills-output').textContent = JSON.stringify(data.profileSkills, null, 2);
+    }
+    
+    function clearAll() {
+      document.getElementById('info-output').textContent = 'Нажмите кнопку для загрузки';
+      document.getElementById('education-output').textContent = 'Нажмите кнопку для загрузки';
+      document.getElementById('experience-output').textContent = 'Нажмите кнопку для загрузки';
+      document.getElementById('skills-output').textContent = 'Нажмите кнопку для загрузки';
+    }
+  </script>
+</body>
+</html>
