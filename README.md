@@ -1,6 +1,6 @@
 # Digital Business Card
 
-Backend цифровой визитной карточки на NestJS и GraphQL.
+Backend цифровой визитной карточки на NestJS и GraphQL. Приложение также раздает HTML-страницу из `public/`.
 
 ## Требования
 
@@ -8,35 +8,81 @@ Backend цифровой визитной карточки на NestJS и GraphQ
 - npm
 - Docker и Docker Compose для запуска в контейнере
 
-## Установка зависимостей
+## Установка и запуск
 
 ```bash
 npm install
-```
-
-## Локальный запуск
-
-Запуск в режиме разработки с автоматической перезагрузкой:
-
-```bash
 npm run start:dev
 ```
 
-После запуска приложение доступно по адресу:
+После запуска по умолчанию доступны:
 
-- GraphQL API и GraphQL Playground: http://localhost:3000/graphql
+- `GET http://localhost:3000/` — frontend из `public/index.html`;
+- `POST http://localhost:3000/graphql` — GraphQL API;
+- `http://localhost:3000/graphql` — интерфейс GraphQL Playground.
 
-Порт можно изменить через переменную окружения:
+## GraphQL API
 
-```bash
-# macOS/Linux
-PORT=4000 npm run start:dev
+GraphQL использует путь `/graphql` в нижнем регистре. Доступны четыре query-поля:
 
-# Windows PowerShell
-$env:PORT=4000; npm run start:dev
+| Query | Возвращаемый тип | Назначение |
+| --- | --- | --- |
+| `profileInfo` | `ProfileObjectType` | Основные данные профиля |
+| `profileEducation` | `[EducationObjectType]` | Образование |
+| `profileExperience` | `[ExperienceObjectType]` | Опыт работы |
+| `profileSkills` | `[SkillObjectType]` | Навыки |
+
+Пример одного запроса для загрузки всех секций:
+
+```graphql
+query {
+  profileInfo {
+    id
+    first_name
+    last_name
+    birth_year
+    phone
+    email
+    telegram_url
+    location
+  }
+  profileEducation {
+    id
+    university
+    start_year
+    end_year
+    degree
+    field_of_study
+  }
+  profileExperience {
+    id
+    company_name
+    start_year
+    end_year
+    achievements
+  }
+  profileSkills {
+    id
+    name
+  }
+}
 ```
 
-## Запуск в Docker
+Поля `birth_year`, `phone`, `telegram_url`, `location`, `start_year`, `end_year` и `degree` могут быть `null`.
+
+Пример HTTP-запроса:
+
+```bash
+curl http://localhost:3000/graphql \
+  -H "Content-Type: application/json" \
+  --data '{"query":"{ profileInfo { id first_name last_name email } }"}'
+```
+
+## Данные
+
+Профиль сейчас хранится в памяти в `src/profile/profile.service.ts`. База данных, авторизация и mutations не подключены. Изменения данных требуют изменения `mockUserProfile` и перезапуска приложения.
+
+## Docker
 
 Сборка образа и запуск контейнера:
 
@@ -44,99 +90,48 @@ $env:PORT=4000; npm run start:dev
 docker compose up --build
 ```
 
-Для запуска в фоне:
+Запуск в фоне и полезные команды:
 
 ```bash
 docker compose up --build -d
-```
-
-Полезные команды:
-
-```bash
-# Посмотреть логи
 docker compose logs -f app
-
-# Проверить запущенные сервисы
 docker compose ps
-
-# Остановить и удалить контейнеры
 docker compose down
 ```
 
-Контейнер публикует порт `3000` хоста на порт `3000` приложения. После запуска GraphQL Playground доступен по адресу http://localhost:3000/graphql.
+Compose публикует порт `3000` хоста на порт `3000` приложения. Production-образ собирается в несколько этапов на базе Node.js 20 Alpine и запускается командой `node dist/main.js`.
 
-## GraphQL API
-
-Текущая схема содержит запрос `profile`:
-
-```graphql
-query {
-	profile {
-		id
-		username
-		email
-		bio
-	}
-}
-```
-
-Пример ответа:
-
-```json
-{
-	"data": {
-		"profile": {
-			"id": "usr_12345",
-			"username": "john_doe",
-			"email": "john@example.com",
-			"bio": "Full-stack разработчик"
-		}
-	}
-}
-```
+Во время Docker-сборки на builder-стадии сначала выполняются e2e-тесты, затем собирается приложение и удаляются dev-зависимости. Если e2e-тесты завершаются с ошибкой, образ не будет собран.
 
 ## Проверка проекта
 
 ```bash
-# Сборка TypeScript
-npm run build
-
-# Unit-тесты
-npm test
-
-# Unit-тесты с покрытием
-npm run test:cov
-
-# E2E-тесты
-npm run test:e2e
-
-# Проверка и автоматическое исправление ESLint
-npm run lint
-
-# Форматирование исходников
-npm run format
+npm run build       # Сборка TypeScript
+npm test            # Unit-тесты
+npm run test:cov    # Unit-тесты с покрытием
+npm run test:e2e    # E2E-тесты локального приложения
+npm run lint        # ESLint с автоматическим исправлением
+npm run format      # Форматирование исходников
 ```
 
-## Production-запуск без Docker
+E2E-тесты находятся в `test/app.e2e-spec.ts` и поднимают приложение напрямую в тестовом процессе; вручную запускать отдельный сервер для `npm run test:e2e` не требуется. В Docker они также запускаются автоматически во время сборки образа.
 
-```bash
-npm run build
-npm run start:prod
-```
-
-По умолчанию приложение использует порт `3000`.
 
 ## Структура проекта
 
 ```text
 src/
-	app.module.ts             # Основной модуль и конфигурация GraphQL
-	main.ts                   # Точка входа приложения
-	profile/                  # Модуль, resolver и service профиля
-	schema.gql                # Автоматически генерируемая GraphQL-схема
-test/                        # E2E-тесты
-Dockerfile                  # Multi-stage production-образ
-docker-compose.yml          # Запуск приложения в Docker Compose
+  app.module.ts                               # Основной модуль, static files и GraphQL
+  app.controller.ts                           # GET /
+  main.ts                                     # Точка входа приложения
+  profile/
+    profile.resolver.ts                       # GraphQL query-поля профиля
+    profile.service.ts                        # Данные профиля и методы чтения
+    entities/profile.entity/profile.entity.ts # GraphQL object types
+test/app.e2e-spec.ts                          # E2E-проверки frontend и GraphQL
+public/index.html                             # Простая клиентская страница
+Dockerfile                                    # Multi-stage production-образ
+docker-compose.yml                            # Запуск приложения в Docker Compose
 ```
 
-Файл `src/schema.gql` генерируется NestJS автоматически при запуске и сборке приложения. Изменения схемы следует вносить в entities, resolver и service, а не редактировать этот файл вручную.
+GraphQL-схема создается NestJS из декораторов в entity и resolver во время запуска. Ее не нужно редактировать вручную.

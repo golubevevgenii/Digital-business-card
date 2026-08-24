@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ProfileObjectType } from './entities/profile.entity/profile.entity';
 
 export const mockUserProfile = {
   info: {  
@@ -67,13 +66,11 @@ export const mockUserProfile = {
 @Injectable()
 export class ProfileService {
   async getInfo() {
-    console.log('mockUserProfile.info', mockUserProfile.info);
-    return mockUserProfile.info
+    return mockUserProfile.info;
   }
 
   async getEducation() {
-    console.log('mockUserProfile.education', mockUserProfile.education);
-    return mockUserProfile.education
+    return mockUserProfile.education;
   }
 
   async getExperience() {
@@ -82,10 +79,5 @@ export class ProfileService {
 
   async getSkills() {
     return mockUserProfile.skills
-  }
-
-  async getAll() {
-    const allData = {info: mockUserProfile.info, education:mockUserProfile.education, experience: mockUserProfile.experience, skills: mockUserProfile.skills} 
-    return allData
   }
 }

@@ -42,7 +42,7 @@
 
   <script>
     async function fetchGraphQL(query) {
-      const res = await fetch('/graphql', {
+      const res = await fetch('/GraphQL', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),

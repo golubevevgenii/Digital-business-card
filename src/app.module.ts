@@ -4,20 +4,24 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { ProfileModule } from './profile/profile.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public'),
-      exclude: ['/graphql/{*path}'],
+      serveRoot: '/',
+      exclude: ['/graphql', '/graphql/*path'],
     }),
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      path: '/graphql',
+      autoSchemaFile: true,
       playground: true,
     }),
     ProfileModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
