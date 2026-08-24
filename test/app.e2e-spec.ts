@@ -27,13 +27,47 @@ describe('Application (e2e)', () => {
       });
   });
 
-  it('/GraphQL (POST) serves the API', () => {
+  it('/GraphQL (POST) serves the API profileInfo', () => {
     return request(app.getHttpServer())
       .post('/GraphQL')
       .send({ query: '{ profileInfo { first_name } }' })
       .expect(200)
       .expect(({ body }) => {
         expect(body.data.profileInfo.first_name).toBe('Иван');
+      });
+  });
+  
+  it('/GraphQL (POST) serves the API profileEducation', () => {
+    return request(app.getHttpServer())
+      .post('/GraphQL')
+      .send({ query: '{ profileEducation { degree } }' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.data.profileEducation).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ degree: 'Бакалавр' }),
+          ])
+        );
+      });
+  });
+  
+  it('/GraphQL (POST) serves the API profileExperience', () => {
+    return request(app.getHttpServer())
+      .post('/GraphQL')
+      .send({ query: '{ profileExperience { company_name } }' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.data.profileExperience[0].company_name).toBe('Tech Solutions');
+      });
+  });
+
+  it('/GraphQL (POST) serves the API profileSkills', () => {
+    return request(app.getHttpServer())
+      .post('/GraphQL')
+      .send({ query: '{ profileSkills { name } }' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.data.profileSkills[0].name).toBe('SQL');
       });
   });
 
