@@ -8,7 +8,8 @@ export class ProfileResolver {
 
   @Query(() => ProfileObjectType, { name: 'profileInfo' })
   async getProfileInfo(){
-    return this.profileService.getInfo();
+    const profile = await this.profileService.getInfo();
+    return profile
   }
 
   @Query(() => [EducationObjectType], { name: 'profileEducation' })

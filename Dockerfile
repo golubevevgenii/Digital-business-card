@@ -17,8 +17,6 @@ WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
-RUN npm run test:e2e
-
 RUN npm run build
 
 ENV NODE_ENV=production
