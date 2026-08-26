@@ -7,6 +7,7 @@ import {
   ProfileInfoEntity,
   SkillEntity,
 } from './entities/database/profile.database.entity';
+import { FindOptionsSelect } from 'typeorm';
 
 @Injectable()
 export class ProfileService {
@@ -98,19 +99,47 @@ export class ProfileService {
     );
   }
 
-  async getInfo() {
-    return this.profileRepository?.findOneBy({ id: process.env.USER_ID });
+  private createSelectMask<T>(fields: string[]): FindOptionsSelect<T> {
+    return fields.reduce((acc, field) => {
+      acc[field as keyof T] = true as any;
+      return acc;
+    }, {} as FindOptionsSelect<T>);
   }
 
-  async getEducation() {
-    return this.educationRepository?.findBy({ user_id: process.env.USER_ID });
+  async getInfo(selectFields: string[]) {
+
+    const result = await this.profileRepository?.findOne({
+      where: { id: process.env.USER_ID },
+      select: this.createSelectMask<ProfileInfoEntity>(selectFields),
+    });
+    console.log('result из бд', result);
+    return result
   }
 
-  async getExperience() {
-    return this.experienceRepository?.findBy({ user_id: process.env.USER_ID });
+  async getEducation(selectFields?: string[]) {
+    const result = await this.educationRepository?.find({
+      where: { user_id: process.env.USER_ID },
+      ...(selectFields && { select: this.createSelectMask<EducationEntity>(selectFields) }),
+    });
+    console.log('result из бд', result);
+    return result
   }
 
-  async getSkills() {
-    return this.skillRepository?.findBy({ user_id: process.env.USER_ID });
+  async getExperience(selectFields?: string[]) {
+    const result = await this.experienceRepository?.find({
+      where: { user_id: process.env.USER_ID },
+      ...(selectFields && { select: this.createSelectMask<ExperienceEntity>(selectFields) }),
+    });
+    console.log('result из бд', result);
+    return result
+  }
+
+  async getSkills(selectFields?: string[]) {
+    const result = await this.skillRepository?.find({
+      where: { user_id: process.env.USER_ID },
+      ...(selectFields && { select: this.createSelectMask<SkillEntity>(selectFields) }),
+    });
+    console.log('result из бд', result);
+    return result
   }
 }

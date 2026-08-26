@@ -1,38 +1,118 @@
 # Digital Business Card
 
-Backend цифровой визитной карточки на NestJS и GraphQL. Приложение также раздает HTML-страницу из `public/`.
+Backend цифровой визитной карточки на NestJS с использованием GraphQL.
+Приложение также раздает минимальный фронтенд в виде HTML-страницы из `public/`. 
+В Playground по /graphql можно проверить GraphQL запросы к бэкенду
+Приложение разворачивается в Docker'e с помощью Docker compose
+Изолированные тесты на Jest
+
+Технологический стек: Nest.JS, GraphQL, TS, Docker Compouse, PostgreSQL, TypeORM, Jest
+
+## Данные
+
+Данные хранятся в PostgreSQL и получаютcя бэкендом через TypeORM.
+Запрос в базу данных выполняется через GraphQL: сервер выбирает только те поля, которые запрошены клиентом, и формирует SQL-выборку только по нужным колонкам.
 
 ## Требования
 
-- Node.js 20 или новее
-- npm
-- Docker и Docker Compose для запуска в контейнере
+- Node.js 20+
+- Docker и Docker Compose
 
-## Установка и запуск
+## Команды
 
+### Развертывание
+#### Сборка проекта
 ```bash
-npm install
-npm run start:dev
+docker compose build --no-cache
+```
+#### Запуск проекта
+```bash
+docker compose up -d
 ```
 
-После запуска по умолчанию доступны:
+### Тестирование (если развертывания не было — развернет в отдельном контейнере)
+#### Запуск тестов
+```bash
+docker compose run --rm e2e_tests
+```
 
-- `GET http://localhost:3000/` — frontend из `public/index.html`;
-- `POST http://localhost:3000/graphql` — GraphQL API;
-- `http://localhost:3000/graphql` — интерфейс GraphQL Playground.
+### Разработка
+#### Пересборка кода
+```bash
+docker compose up -d --build
+```
+#### установка зависимостей (убирает ошибки импортов в редакторе)
+```bash
+npm i
+```
+
+## Доступные эндпоинты
+
+После запуска по адресу `http://localhost:3000/` доступны:
+- `/` — frontend из `public/index.html`
+- `/graphql` — GraphQL API и Playground
 
 ## GraphQL API
 
-GraphQL использует путь `/graphql` в нижнем регистре. Доступны четыре query-поля:
+Доступные query-поля:
+- `profileInfo` — Основные данные профиля
+- `profileEducation` — Образование
+- `profileExperience` — Опыт работы
+- `profileSkills` — Навыки
 
-| Query | Возвращаемый тип | Назначение |
-| --- | --- | --- |
-| `profileInfo` | `ProfileObjectType` | Основные данные профиля |
-| `profileEducation` | `[EducationObjectType]` | Образование |
-| `profileExperience` | `[ExperienceObjectType]` | Опыт работы |
-| `profileSkills` | `[SkillObjectType]` | Навыки |
+<details>
+<summary> 🔴<ins>Полные запросы ко всем таблицам</ins>🔴 </summary>
 
-Пример одного запроса для загрузки всех секций:
+```graphql
+  query {
+    profileInfo {
+      first_name
+      last_name
+      birth_year
+      phone
+      email
+      telegram_url
+      location
+    }
+  }
+```
+
+```graphql
+  query {
+    profileEducation {
+      id
+      university
+      start_year
+      end_year
+      degree
+      field_of_study
+    }
+  }
+```
+
+```graphql
+  query {
+    profileExperience {
+      id
+      company_name
+      start_year
+      end_year
+      achievements
+    }
+  }
+```
+
+```graphql
+  query {
+    profileSkills {
+      name
+    }
+  }
+```
+
+</details>
+
+### Пример запроса
 
 ```graphql
 query {
@@ -40,37 +120,13 @@ query {
     id
     first_name
     last_name
-    birth_year
-    phone
     email
-    telegram_url
-    location
-  }
-  profileEducation {
-    id
-    university
-    start_year
-    end_year
-    degree
-    field_of_study
-  }
-  profileExperience {
-    id
-    company_name
-    start_year
-    end_year
-    achievements
-  }
-  profileSkills {
-    id
-    name
   }
 }
 ```
 
-Поля `birth_year`, `phone`, `telegram_url`, `location`, `start_year`, `end_year` и `degree` могут быть `null`.
 
-Пример HTTP-запроса:
+Пример через cURL:
 
 ```bash
 curl http://localhost:3000/graphql \
@@ -78,60 +134,26 @@ curl http://localhost:3000/graphql \
   --data '{"query":"{ profileInfo { id first_name last_name email } }"}'
 ```
 
-## Данные
-
-Профиль сейчас хранится в памяти в `src/profile/profile.service.ts`. База данных, авторизация и mutations не подключены. Изменения данных требуют изменения `mockUserProfile` и перезапуска приложения.
-
-## Docker
-
-Сборка образа и запуск контейнера:
-
-```bash
-docker compose up --build
-```
-
-Запуск в фоне и полезные команды:
-
-```bash
-docker compose up --build -d
-docker compose logs -f app
-docker compose ps
-docker compose down
-```
-
-Compose публикует порт `3000` хоста на порт `3000` приложения. Production-образ собирается в несколько этапов на базе Node.js 20 Alpine и запускается командой `node dist/main.js`.
-
-Во время Docker-сборки на builder-стадии сначала выполняются e2e-тесты, затем собирается приложение и удаляются dev-зависимости. Если e2e-тесты завершаются с ошибкой, образ не будет собран.
-
-## Проверка проекта
-
-```bash
-npm run build       # Сборка TypeScript
-npm test            # Unit-тесты
-npm run test:cov    # Unit-тесты с покрытием
-npm run test:e2e    # E2E-тесты локального приложения
-npm run lint        # ESLint с автоматическим исправлением
-npm run format      # Форматирование исходников
-```
-
-E2E-тесты находятся в `test/app.e2e-spec.ts` и поднимают приложение напрямую в тестовом процессе; вручную запускать отдельный сервер для `npm run test:e2e` не требуется. В Docker они также запускаются автоматически во время сборки образа.
-
-
 ## Структура проекта
 
 ```text
 src/
-  app.module.ts                               # Основной модуль, static files и GraphQL
-  app.controller.ts                           # GET /
-  main.ts                                     # Точка входа приложения
+  app.module.ts                              # Основной модуль приложения
+  app.controller.ts                          # Контроллер для отдачи frontend по /
+  main.ts                                    # Точка входа приложения
   profile/
-    profile.resolver.ts                       # GraphQL query-поля профиля
-    profile.service.ts                        # Данные профиля и методы чтения
-    entities/profile.entity/profile.entity.ts # GraphQL object types
-test/app.e2e-spec.ts                          # E2E-проверки frontend и GraphQL
-public/index.html                             # Простая клиентская страница
-Dockerfile                                    # Multi-stage production-образ
-docker-compose.yml                            # Запуск приложения в Docker Compose
+    profile.module.ts                        # Модуль профиля
+    profile.resolver.ts                      # GraphQL-resolver
+    profile.service.ts                       # Логика получения данных профиля
+    entities/
+      database/
+        profile.database.entity.ts          # TypeORM-сущности для PostgreSQL
+      profile.entity/
+        profile.entity.ts                   # GraphQL-объекты
+test/
+  app.e2e-spec.ts                           # E2E-тесты
+public/
+  index.html                                # Минимальный frontend
+Dockerfile                                  # Multi-stage сборка контейнера
+docker-compose.yml                          # Конфигурация Docker Compose
 ```
-
-GraphQL-схема создается NestJS из декораторов в entity и resolver во время запуска. Ее не нужно редактировать вручную.
