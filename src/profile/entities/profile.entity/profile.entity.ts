@@ -71,6 +71,6 @@ export class SkillObjectType {
   id!: string;
 
   @Field()
-  name!: string;
+  skill!: string;
 }
 

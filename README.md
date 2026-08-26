@@ -105,7 +105,7 @@ npm i
 ```graphql
   query {
     profileSkills {
-      name
+      skill
     }
   }
 ```

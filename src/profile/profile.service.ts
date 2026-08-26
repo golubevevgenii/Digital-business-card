@@ -90,11 +90,11 @@ export class ProfileService {
 
     await this.skillRepository?.save(
       [
-        { id: '1', name: 'SQL', user_id: 'usr_12345', },
-        { id: '2', name: 'API', user_id: 'usr_12345', },
-        { id: '3', name: 'CSS', user_id: 'usr_12345', },
-        { id: '4', name: 'Docker', user_id: 'usr_12345', },
-        { id: '5', name: 'Git', user_id: 'usr_12345', },
+        { id: '1', skill: 'SQL', user_id: 'usr_12345', },
+        { id: '2', skill: 'API', user_id: 'usr_12345', },
+        { id: '3', skill: 'CSS', user_id: 'usr_12345', },
+        { id: '4', skill: 'Docker', user_id: 'usr_12345', },
+        { id: '5', skill: 'Git', user_id: 'usr_12345', },
       ]
     );
   }

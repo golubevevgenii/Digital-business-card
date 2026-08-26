@@ -87,7 +87,7 @@ export class SkillEntity {
   id!: string;
 
   @Column({ type: 'varchar', length: 120 })
-  name!: string;
+  skill!: string;
 
   @Column({ type: 'varchar', length: 255 })
   user_id!: string;

@@ -149,19 +149,19 @@ describe('CV API (e2e)', () => {
       await seedProfile();
 
       await skillRepo.save([
-        { id: 't_skill_1', user_id: testUserId, name: 'TypeScript' },
-        { id: 't_skill_2', user_id: testUserId, name: 'GraphQL' },
+        { id: 't_skill_1', user_id: testUserId, skill: 'TypeScript' },
+        { id: 't_skill_2', user_id: testUserId, skill: 'GraphQL' },
       ]);
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: '{ profileSkills { name } }' })
+        .send({ query: '{ profileSkills { skill } }' })
         .expect(200);
 
       expect(res.body.data.profileSkills).toEqual(
         [
-          {name: 'TypeScript'},
-          {name: 'GraphQL'},
+          {skill: 'TypeScript'},
+          {skill: 'GraphQL'},
         ] 
       )
     });
