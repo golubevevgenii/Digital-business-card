@@ -67,7 +67,7 @@ describe('CV API (e2e)', () => {
         .expect(200)
         .expect('Content-Type', /html/)
         .expect(({ text }) => {
-          expect(text).toContain('<title>Визитка</title>');
+          expect(text).toContain('<title>Визитка GraphQL (Динамические поля)</title>');
         });
     });
   })
