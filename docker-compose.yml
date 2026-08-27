@@ -1,0 +1,52 @@
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:v24.3.16
+    container_name: cv_cockroachdb
+    restart: always
+    command: start-single-node --insecure --accept-sql-without-tls --http-addr=0.0.0.0:8080
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "cockroach sql --insecure --host=localhost:26257 -e 'SELECT 1'"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - cockroach_data:/cockroach/cockroach-data
+
+  e2e_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: cv_e2e_tests
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "npx prisma db push --accept-data-loss && npm run test:e2e"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      cockroachdb:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cv_nestjs_app
+    restart: always
+    depends_on:
+      cockroachdb:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      USER_ID: ${USER_ID}
+    command: sh -c "npx prisma db push --accept-data-loss && node dist/main.js"
+
+volumes:
+  cockroach_data:

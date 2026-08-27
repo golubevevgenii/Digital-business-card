@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model ProfileInfo {
+  id          String       @id @db.String(64)
+  first_name  String       @db.String(120)
+  last_name   String       @db.String(120)
+  birth_year  Int?
+  phone       String?      @db.String(32)
+  email       String       @db.String(254)
+  telegram_url String?     @db.String(255)
+  location    String?      @db.String(255)
+  education   Education[]
+  experience  Experience[]
+  skills      Skill[]
+
+  @@map("profile_info")
+}
+
+model Education {
+  id            String      @id @db.String(64)
+  user_id       String      @db.String(255)
+  profile       ProfileInfo @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  university    String      @db.String(255)
+  start_year    Int?
+  end_year      Int?
+  degree        String?     @db.String(120)
+  field_of_study String?    @db.String(255)
+
+  @@map("education")
+}
+
+model Experience {
+  id           String      @id @db.String(64)
+  user_id      String      @db.String(255)
+  profile      ProfileInfo @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  company_name String      @db.String(255)
+  start_year   Int?
+  end_year     Int?
+  achievements String[]
+
+  @@map("experience")
+}
+
+model Skill {
+  id      String      @id @db.String(64)
+  skill   String      @db.String(120)
+  user_id String      @db.String(255)
+  profile ProfileInfo @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("skills")
+}

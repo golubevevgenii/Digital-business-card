@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Цифровя Визитка</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 30px auto; padding: 0 20px; line-height: 1.5; }
+    .section { border: 1px solid #e0e0e0; padding: 16px; margin-bottom: 20px; border-radius: 8px; background: #fafafa; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px 15px; margin: 12px 0; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; }
+    .checkbox-group label { cursor: pointer; user-select: none; font-size: 0.9em; }
+    button { cursor: pointer; padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; font-weight: 500; }
+    button:hover { background: #0052a3; }
+    button.clear { background: #666; }
+    pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <h1>Цифровая Визитка</h1>
+  <p>Демонстрация GraphQL: Отмечайте только те поля, которые хотите получить от сервера:</p>
+  
+  <button onclick="loadAll()">Получить все данные со всеми возможными полями</button>
+  <button class="clear" onclick="clearAll()">Очистить все выводы</button>
+  <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+  <div class="section">
+    <h3>Профиль</h3>
+    <div class="checkbox-group" id="fields-info">
+      <label><input type="checkbox" value="first_name" checked> first_name</label>
+      <label><input type="checkbox" value="last_name" checked> last_name</label>
+      <label><input type="checkbox" value="birth_year"> birth_year</label>
+      <label><input type="checkbox" value="phone"> phone</label>
+      <label><input type="checkbox" value="email"> email</label>
+      <label><input type="checkbox" value="telegram_url"> telegram_url</label>
+      <label><input type="checkbox" value="location"> location</label>
+    </div>
+    <button onclick="loadInfo()">Запросить профиль</button>
+    <pre id="info-output">Выберите поля и нажмите кнопку</pre>
+  </div>
+  
+  <div class="section">
+    <h3>Образование</h3>
+    <div class="checkbox-group" id="fields-education">
+      <label><input type="checkbox" value="id"> id</label>
+      <label><input type="checkbox" value="university" checked> university</label>
+      <label><input type="checkbox" value="start_year"> start_year</label>
+      <label><input type="checkbox" value="end_year"> end_year</label>
+      <label><input type="checkbox" value="degree" checked> degree</label>
+      <label><input type="checkbox" value="field_of_study"> field_of_study</label>
+    </div>
+    <button onclick="loadEducation()">Запросить образование</button>
+    <pre id="education-output">Выберите поля и нажмите кнопку</pre>
+  </div>
+
+  <div class="section">
+    <h3>Опыт работы</h3>
+    <div class="checkbox-group" id="fields-experience">
+      <label><input type="checkbox" value="id"> id</label>
+      <label><input type="checkbox" value="company_name" checked> company_name</label>
+      <label><input type="checkbox" value="start_year"> start_year</label>
+      <label><input type="checkbox" value="end_year"> end_year</label>
+      <label><input type="checkbox" value="achievements" checked> achievements</label>
+    </div>
+    <button onclick="loadExperience()">Запросить опыт</button>
+    <pre id="experience-output">Выберите поля и нажмите кнопку</pre>
+  </div>
+
+  <div class="section">
+    <h3>Навыки</h3>
+    <button onclick="loadSkills()">Запросить навыки</button>
+    <pre id="skills-output">Тут только одно поле, нажмите кнопку</pre>
+  </div>
+
+  <script>
+    async function fetchGraphQL(query) {
+      const res = await fetch('/GraphQL', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      const json = await res.json();
+      return json.data;
+    }
+
+    function getSelectedFields(containerId) {
+      const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    async function loadInfo() {
+      const fields = getSelectedFields('fields-info');
+      const output = document.getElementById('info-output');
+
+      if (fields.length === 0) {
+        output.textContent = 'Ошибка: выберите хотя бы одно поле!';
+        return;
+      }
+
+      const query = `query { profileInfo { ${fields.join(' ')} } }`;
+      const data = await fetchGraphQL(query);
+      output.textContent = JSON.stringify(data.profileInfo, null, 2);
+    }
+
+    async function loadEducation() {
+      const fields = getSelectedFields('fields-education');
+      const output = document.getElementById('education-output');
+
+      if (fields.length === 0) {
+        output.textContent = 'Ошибка: выберите хотя бы одно поле!';
+        return;
+      }
+
+      const query = `query { profileEducation { ${fields.join(' ')} } }`;
+      const data = await fetchGraphQL(query);
+      output.textContent = JSON.stringify(data.profileEducation, null, 2);
+    }
+
+    async function loadExperience() {
+      const fields = getSelectedFields('fields-experience');
+      const output = document.getElementById('experience-output');
+
+      if (fields.length === 0) {
+        output.textContent = 'Ошибка: выберите хотя бы одно поле!';
+        return;
+      }
+
+      const query = `query { profileExperience { ${fields.join(' ')} } }`;
+      const data = await fetchGraphQL(query);
+      output.textContent = JSON.stringify(data.profileExperience, null, 2);
+    }
+
+    async function loadSkills() {
+      const output = document.getElementById('skills-output');
+
+      const query = `query { profileSkills { skill } }`;
+      const data = await fetchGraphQL(query);
+      output.textContent = JSON.stringify(data.profileSkills, null, 2);
+    }
+
+    async function loadAll() {
+      const query = `query { profileInfo { first_name birth_year last_name phone email telegram_url location } profileEducation { id university start_year end_year degree field_of_study } profileExperience { id company_name start_year end_year achievements } profileSkills { skill } } `
+      const data = await fetchGraphQL(query);
+
+      if (data.profileInfo) document.getElementById('info-output').textContent = JSON.stringify(data.profileInfo, null, 2);
+      if (data.profileEducation) document.getElementById('education-output').textContent = JSON.stringify(data.profileEducation, null, 2);
+      if (data.profileExperience) document.getElementById('experience-output').textContent = JSON.stringify(data.profileExperience, null, 2);
+      if (data.profileSkills) document.getElementById('skills-output').textContent = JSON.stringify(data.profileSkills, null, 2);
+    }
+
+    function clearAll() {
+      document.getElementById('info-output').textContent = 'Выберите поля и нажмите кнопку';
+      document.getElementById('education-output').textContent = 'Выберите поля и нажмите кнопку';
+      document.getElementById('experience-output').textContent = 'Выберите поля и нажмите кнопку';
+      document.getElementById('skills-output').textContent = 'Тут только одно поле, нажмите кнопку';
+    }
+  </script>
+</body>
+</html>
