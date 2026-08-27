@@ -1,32 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import {
-  EducationEntity,
-  ExperienceEntity,
-  ProfileInfoEntity,
-  SkillEntity,
-} from './entities/database/profile.database.entity';
-import { FindOptionsSelect } from 'typeorm';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
-    @InjectRepository(ProfileInfoEntity)
-    private readonly profileRepository?: Repository<ProfileInfoEntity>,
-    @InjectRepository(EducationEntity)
-    private readonly educationRepository?: Repository<EducationEntity>,
-    @InjectRepository(ExperienceEntity)
-    private readonly experienceRepository?: Repository<ExperienceEntity>,
-    @InjectRepository(SkillEntity)
-    private readonly skillRepository?: Repository<SkillEntity>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit() {
-    if (!this.profileRepository) return;
-
-    await this.profileRepository.save(
-      {
+    await this.prisma.profileInfo.upsert({
+      where: { id: 'usr_12345' },
+      update: {},
+      create: {
         id: 'usr_12345',
         first_name: 'Иван',
         last_name: 'Иванов',
@@ -35,11 +20,12 @@ export class ProfileService {
         email: 'john@example.com',
         telegram_url: 'https://t.me/john_doe',
         location: 'Москва, Россия',
-      }
-    );
+      },
+    });
 
-    await this.educationRepository?.save(
-      [
+    await this.prisma.education.createMany({
+      skipDuplicates: true,
+      data: [
         {
           id: 'edu_1',
           user_id: 'usr_12345',
@@ -58,11 +44,12 @@ export class ProfileService {
           degree: 'Магистр',
           field_of_study: 'Информатика и вычислительная техника',
         },
-      ]
-    );
+      ],
+    });
 
-    await this.experienceRepository?.save(
-      [
+    await this.prisma.experience.createMany({
+      skipDuplicates: true,
+      data: [
         {
           id: 'exp_1',
           user_id: 'usr_12345',
@@ -85,59 +72,60 @@ export class ProfileService {
             'Внедрил CI/CD процессы и Docker-контейнеризацию',
           ],
         },
-      ]
-    );
+      ],
+    });
 
-    await this.skillRepository?.save(
-      [
+    await this.prisma.skill.createMany({
+      skipDuplicates: true,
+      data: [
         { id: '1', skill: 'SQL', user_id: 'usr_12345', },
         { id: '2', skill: 'API', user_id: 'usr_12345', },
         { id: '3', skill: 'CSS', user_id: 'usr_12345', },
         { id: '4', skill: 'Docker', user_id: 'usr_12345', },
         { id: '5', skill: 'Git', user_id: 'usr_12345', },
-      ]
-    );
+      ],
+    });
   }
 
-  private createSelectMask<T>(fields: string[]): FindOptionsSelect<T> {
+  private createSelectMask(fields: string[]): Record<string, boolean> {
     return fields.reduce((acc, field) => {
-      acc[field as keyof T] = true as any;
+      acc[field] = true;
       return acc;
-    }, {} as FindOptionsSelect<T>);
+    }, {} as Record<string, boolean>);
   }
 
   async getInfo(selectFields: string[]) {
 
-    const result = await this.profileRepository?.findOne({
+    const result = await this.prisma.profileInfo.findUnique({
       where: { id: process.env.USER_ID },
-      select: this.createSelectMask<ProfileInfoEntity>(selectFields),
+      select: this.createSelectMask(selectFields),
     });
     console.log('result из бд', result);
     return result
   }
 
   async getEducation(selectFields?: string[]) {
-    const result = await this.educationRepository?.find({
+    const result = await this.prisma.education.findMany({
       where: { user_id: process.env.USER_ID },
-      ...(selectFields && { select: this.createSelectMask<EducationEntity>(selectFields) }),
+      ...(selectFields && { select: this.createSelectMask(selectFields) }),
     });
     console.log('result из бд', result);
     return result
   }
 
   async getExperience(selectFields?: string[]) {
-    const result = await this.experienceRepository?.find({
+    const result = await this.prisma.experience.findMany({
       where: { user_id: process.env.USER_ID },
-      ...(selectFields && { select: this.createSelectMask<ExperienceEntity>(selectFields) }),
+      ...(selectFields && { select: this.createSelectMask(selectFields) }),
     });
     console.log('result из бд', result);
     return result
   }
 
   async getSkills(selectFields?: string[]) {
-    const result = await this.skillRepository?.find({
+    const result = await this.prisma.skill.findMany({
       where: { user_id: process.env.USER_ID },
-      ...(selectFields && { select: this.createSelectMask<SkillEntity>(selectFields) }),
+      ...(selectFields && { select: this.createSelectMask(selectFields) }),
     });
     console.log('result из бд', result);
     return result

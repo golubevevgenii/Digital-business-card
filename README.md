@@ -6,11 +6,11 @@ Backend цифровой визитной карточки на NestJS с исп
 Приложение разворачивается в Docker'e с помощью Docker compose
 Изолированные тесты на Jest
 
-Технологический стек: Nest.JS, GraphQL, TS, Docker Compouse, PostgreSQL, TypeORM, Jest
+Технологический стек: Nest.JS, GraphQL, TS, Docker Compose, CockroachDB, Prisma, Jest
 
 ## Данные
 
-Данные хранятся в PostgreSQL и получаютcя бэкендом через TypeORM.
+Данные хранятся в CockroachDB и получаются бэкендом через Prisma.
 Запрос в базу данных выполняется через GraphQL: сервер выбирает только те поля, которые запрошены клиентом, и формирует SQL-выборку только по нужным колонкам.
 
 ## Требования
@@ -146,10 +146,10 @@ src/
     profile.resolver.ts                      # GraphQL-resolver
     profile.service.ts                       # Логика получения данных профиля
     entities/
-      database/
-        profile.database.entity.ts          # TypeORM-сущности для PostgreSQL
       profile.entity/
-        profile.entity.ts                   # GraphQL-объекты
+        profile.entity.ts                    # GraphQL-объекты
+prisma/
+  schema.prisma                              # Prisma-схема для CockroachDB
 test/
   app.e2e-spec.ts                           # E2E-тесты
 public/

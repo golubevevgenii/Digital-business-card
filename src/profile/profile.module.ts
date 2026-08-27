@@ -1,23 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { ProfileResolver } from './profile.resolver';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  EducationEntity,
-  ExperienceEntity,
-  ProfileInfoEntity,
-  SkillEntity,
-} from './entities/database/profile.database.entity';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      ProfileInfoEntity,
-      EducationEntity,
-      ExperienceEntity,
-      SkillEntity,
-    ]),
-  ],
+  imports: [PrismaModule],
   providers: [ProfileResolver, ProfileService],
 })
 export class ProfileModule {}
