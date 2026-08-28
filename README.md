@@ -37,13 +37,17 @@ docker compose run --rm e2e_tests
 ```
 
 ### Разработка
-#### Пересборка кода
+#### Пересборка кода локально
 ```bash
 docker compose up -d --build
 ```
 #### установка зависимостей (убирает ошибки импортов в редакторе)
 ```bash
 npm i
+```
+#### Пересборка кода на проде
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ## Доступные эндпоинты
