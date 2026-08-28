@@ -12,6 +12,8 @@
     button:hover { background: #0052a3; }
     button.clear { background: #666; }
     pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px 10px; font-family: system-ui, -apple-system, sans-serif;}
+    .skill-tag {background-color: #f2f4f8; color: #1a1a1a; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 400; line-height: 1.4; display: inline-block; }
   </style>
 </head>
 <body>
@@ -19,7 +21,7 @@
   <p>Демонстрация GraphQL: Отмечайте только те поля, которые хотите получить от сервера:</p>
   
   <button onclick="loadAll()">Получить все данные со всеми возможными полями</button>
-  <button class="clear" onclick="clearAll()">Очистить все выводы</button>
+  <button class="clear" onclick="clearAll()">Очистить все выводы и чекбоксы</button>
   <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
 
   <div class="section">
@@ -67,10 +69,20 @@
   <div class="section">
     <h3>Навыки</h3>
     <button onclick="loadSkills()">Запросить навыки</button>
-    <pre id="skills-output">Тут только одно поле, нажмите кнопку</pre>
+    <div id="skills-output" class="skills-container">
+      <div class="skills-list">
+        Тут только одно поле, нажмите кнопку
+      </div>
+    </div>
   </div>
 
   <script>
+    function clearCheckbox(option){
+      document.querySelectorAll('#fields-info input[type="checkbox"]').forEach(cb => cb.checked = option);
+      document.querySelectorAll('#fields-education input[type="checkbox"]').forEach(cb => cb.checked = option);
+      document.querySelectorAll('#fields-experience input[type="checkbox"]').forEach(cb => cb.checked = option);
+    }
+
     async function fetchGraphQL(query) {
       const res = await fetch('/GraphQL', {
         method: 'POST',
@@ -129,11 +141,13 @@
     }
 
     async function loadSkills() {
-      const output = document.getElementById('skills-output');
-
       const query = `query { profileSkills { skill } }`;
       const data = await fetchGraphQL(query);
-      output.textContent = JSON.stringify(data.profileSkills, null, 2);
+
+      const skillsList = document.querySelector('#skills-output .skills-list');
+      skillsList.innerHTML = data.profileSkills
+        .map(item => `<span class="skill-tag">${item.skill}</span>`)
+        .join('');      
     }
 
     async function loadAll() {
@@ -143,14 +157,24 @@
       if (data.profileInfo) document.getElementById('info-output').textContent = JSON.stringify(data.profileInfo, null, 2);
       if (data.profileEducation) document.getElementById('education-output').textContent = JSON.stringify(data.profileEducation, null, 2);
       if (data.profileExperience) document.getElementById('experience-output').textContent = JSON.stringify(data.profileExperience, null, 2);
-      if (data.profileSkills) document.getElementById('skills-output').textContent = JSON.stringify(data.profileSkills, null, 2);
+      const skillsList = document.querySelector('#skills-output .skills-list');
+      if (data.profileSkills && data.profileSkills.length > 0) {
+        skillsList.innerHTML = data.profileSkills
+          .map(item => `<span class="skill-tag">${item.skill}</span>`)
+          .join('');
+      } else {
+        skillsList.innerHTML = '';
+      }
+      clearCheckbox(true)
     }
 
     function clearAll() {
       document.getElementById('info-output').textContent = 'Выберите поля и нажмите кнопку';
       document.getElementById('education-output').textContent = 'Выберите поля и нажмите кнопку';
       document.getElementById('experience-output').textContent = 'Выберите поля и нажмите кнопку';
-      document.getElementById('skills-output').textContent = 'Тут только одно поле, нажмите кнопку';
+      const skillsList = document.querySelector('#skills-output .skills-list');
+      skillsList.innerHTML = 'Тут только одно поле, нажмите кнопку';
+      clearCheckbox(false)
     }
   </script>
 </body>
