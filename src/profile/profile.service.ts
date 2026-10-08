@@ -123,11 +123,9 @@ export class ProfileService {
   }
 
   async getSkills(selectFields?: string[]) {
-    const result = await this.prisma.skill.findMany({
-      where: { user_id: process.env.USER_ID },
-      ...(selectFields && { select: this.createSelectMask(selectFields) }),
-    });
-    console.log('result из бд', result);
-    return result
+    const result = [
+      { id: "1", skill: "NEWTypeScript", user_id: process.env.USER_ID ?? "test-user-id" },
+      { id: "2", skill: "NEWNode.js", user_id: process.env.USER_ID ?? "test-user-id" },
+    ];
   }
 }
