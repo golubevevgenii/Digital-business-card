@@ -127,5 +127,6 @@ export class ProfileService {
       { id: "1", skill: "NEWTypeScript", user_id: process.env.USER_ID ?? "test-user-id" },
       { id: "2", skill: "NEWNode.js", user_id: process.env.USER_ID ?? "test-user-id" },
     ];
+    return result
   }
 }
